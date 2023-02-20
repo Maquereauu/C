@@ -3,10 +3,24 @@
 
 #include <stdio.h>
 
+typedef struct Case {
+    int isBomb;
+    int bombsNearby;
+    int isQuestionMarked;
+    int isClicked;
+} Case;
+
+
 int main()
 {
-    int test = 5;
-    printf("Hello World!\n");
+    int x;
+    int y;
+    for (x=0;x<10 ;x++ ) {
+        for (y = 0; y < 10; y++) {
+            printf("[]");
+        }
+        printf("\n");
+    }
 }
 
 // Exécuter le programme : Ctrl+F5 ou menu Déboguer > Exécuter sans débogage
