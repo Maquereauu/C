@@ -5,6 +5,7 @@
 
 int main()
 {
+    int test = 5;
     printf("Hello World!\n");
 }
 
