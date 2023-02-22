@@ -3,99 +3,134 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct Case {
-    int isBomb;
-    int bombsNearby;
-    int isFlaged;
-    int isClicked;
+	int isBomb;
+	int bombsNearby;
+	int isFlaged;
+	int isClicked;
 } Case;
 
 void Init();
 void ShowGrid();
+int getRandom();
+int verifWin();
+
 int main()
 {
-    int c = 0;
-    Case EmptyCase[10][10];
-    Init(EmptyCase);
-    ShowGrid(EmptyCase);
+	srand(time(NULL));
+	char playAgain;
+	Case EmptyCase[10][10];
+	Init(EmptyCase);
+	while (1) {
+		ShowGrid(EmptyCase);
+		int playerchoicex;
+		int playerchoicey;
+		puts("Qu'elle case voulez vous decouvrir ? :");
+		scanf_s("%d/%d", &playerchoicex, &playerchoicey);
+		EmptyCase[playerchoicex][playerchoicey].isClicked = 1;
+		int verif = verifWin(EmptyCase);
+		if (verif == 1) {
+			break;
+		}
+	}
+	puts("Voulez vous rejouer?");
+	scanf_s("%c", &playAgain);
+	printf("%c", playAgain);
+	if (playAgain == "y") {
+		main();
+	}
 }
-void Init(Case EmptyCase[10][10]) {
-    int x;
-    int y;
-    int i;
-    int j;
-    int BombCount = 0;
-    int bombsnear = 0;
-    while (BombCount < 5) {
-        for (x = 0; x < 10; x++) {
-            for (y = 0; y < 10; y++) {
-                int randomBomb = (rand() % 10);
-                if (randomBomb == 0) {
-                    EmptyCase[x][y].isBomb = 1;
-                    BombCount++;
-                }
-                else {
-                    EmptyCase[x][y].isBomb = 0;
-                }
+void Init(Case EmptyCase[10][10]){
+	int x;
+	int y;
+	int i;
+	int j;
+	int BombCount = 0;
+	int bombsnear = 0;
+	int debug = 0;
+	int debug2 = 0;
+	for (x = 0; x < 10; x++) {
+		for (y = 0; y < 10; y++) {
+			EmptyCase[x][y].isBomb = 0;
+		}
+	}
 
-            }
-        }
-    }
-    for (x = 0; x < 10; x++) {
-        for (y = 0; y < 10; y++) {
-            EmptyCase[x][y].isClicked = 0;
-            if (EmptyCase[x][y].isBomb == 0) {
-                for (i = 0; i < 3; i++) {
-                    for (j = 0; j < 10; j++) {
-                        if (EmptyCase[i][j].isBomb == 1) {
-                            bombsnear++;
-                        }
-                    }
-                }
-            }
-            int bombsnear = 0;
-        }
-    }
+	for (i = 0; i < 10; i++)
+	{
+		int xrand = getRandom(10);
+		int yrand = getRandom(10);
+		EmptyCase[xrand][yrand].isBomb = 1;
+	}
+
+	for (x = 0; x < 10; x++) {
+		for (y = 0; y < 10; y++) {
+			EmptyCase[x][y].isClicked = 0;
+			int bombsnear = 0;
+			if (EmptyCase[x][y].isBomb == 0) {
+				for (i = -1; i < 2; i++) {
+					for (j = -1; j < 2; j++) {
+						if (EmptyCase[x + i][y + j].isBomb == 1) {
+							if (0 < (y + j) && (y + j) < 10 && 0 < (x + i) && (x + i) < 10) {
+								bombsnear++;
+								EmptyCase[x][y].bombsNearby = bombsnear;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void ShowGrid(Case CaseList[10][10]) {
-    int x;
-    int y;
-    for (x = -1; x < 10; x++) {
-        for (y = -1; y < 10; y++) {
-            if (x == -1 || y == -1) {
-                if (x == -1) {
-                    if(y == -1){
-                        printf("salut %d  ", y);
-                    }
-                }
-                else if (y == -1) {
-                    printf("%d ", x);
-                }
-            }else if (CaseList[x][y].isClicked == 0) {
-                if (CaseList[x][y].isFlaged == 1) {
-                    printf("F");
-                }
-                else {
-                    printf(" ? ");
-                }
-            }
-            else {
-                if (CaseList[x][y].isClicked == 1) {
-                    if (CaseList[x][y].bombsNearby > 0) {
-                        printf("%d", CaseList[x][y].bombsNearby);
-                    }
-                    else if (CaseList[x][y].isBomb == 1) {
-                        printf("B");
-                    }
-                    else {
-                    }
-                }
-            }
-        }
-        printf("\n");
-    }
+	int x;
+	int y;
+	for (x = -1; x < 10; x++) {
+		for (y = -1; y < 10; y++) {
+			if (x == -1 || y == -1) {
+				if (x == -1) {
+					if (y == -1) {
+						printf("D  ");
+					}
+					else {
+						printf("%d  ", y);
+					}
+				}
+				else if (y == -1) {
+					printf("%d ", x);
+				}
+			}
+			else if (CaseList[x][y].isClicked == 0) {
+				if (CaseList[x][y].isFlaged == 1) {
+					printf("F");
+				}
+				else {
+					printf(" ? ");
+				}
+			}
+			else {
+				if (CaseList[x][y].isClicked == 1) {
+					if (CaseList[x][y].bombsNearby > 0) {
+						printf(" %d ", CaseList[x][y].bombsNearby);
+					}
+					else if (CaseList[x][y].isBomb == 1) {
+						printf(" B ");
+					}
+					else {
+						printf(" 0 ");
+					}
+				}
+			}
+		}
+		printf("\n");
+	}
+}
+
+int getRandom(int max) 
+{
+	return rand() % max;
 }
 
 //void flag(){ 
@@ -108,14 +143,29 @@ void ShowGrid(Case CaseList[10][10]) {
 //    
 //}
 
+int verifWin(Case CaseList[10][10]) {
+	int x;
+	int y;
+	int casecount = 0;
+	for (x = 0; x < 10; x++) {
+		for (y = 0; y < 10; y++) {
+			if (CaseList[x][y].isClicked == 1 && CaseList[x][y].isBomb == 1) {
+				printf("Vous avez perdu !");
+				return 1;
+			}
+			else if (CaseList[x][y].isBomb != 1 && CaseList[x][y].isClicked != 1) {
+				casecount++;
+			}
+		}
+	}
+	if (casecount == 0) {
+		printf("Victoire !");
+		return 1;
+	}
 
-//int VerifWin(){ 
-//    //si case clické != isbomb 
-//        //return 0 
-//    //sinon 
-//        //return ""
-//
-//}
+}
+//int Restart(){}
+
 //int win{
 //    //si VerifWin = 0 
 //        //return Win  
