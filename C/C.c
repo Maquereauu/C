@@ -22,51 +22,25 @@ void revealNear();
 int main()
 {
 	int difficulty;
-	puts("Veuillez choisir un mode de difficulté(1-4): ");
+	puts("Veuillez choisir un mode de difficulté ");
 	scanf_s(" %d", &difficulty);
 	srand(time(NULL));
 	int playAgain = 0;
 	int isError = 0;
-	int test = 10;
-	Case EmptyCase[10][10];
-
-	Case** T = (Case**) malloc(sizeof(Case*) * 10);
-	for (int i = 0; i < 10; ++i) 
+	Case** T = (Case**)malloc(sizeof(Case*) * (10 * difficulty));
+	for (int i = 0; i < (10 * difficulty); ++i)
 	{
-		T[i] = (Case*)malloc(sizeof(Case) * 10);
+		T[i] = (Case*)malloc(sizeof(Case) * (10 * difficulty));
 	}
-
-
-	for (int i = 0; i < 10; ++i)
-	{
-		free(T[i]);
-	}
-	free(T);
-
-
-	if (difficulty == 1) {
-		Case EmptyCase[10][10];
-		Init(EmptyCase,1);
-	}else if (difficulty == 2) {
-		Case EmptyCase[20][20];
-		Init(EmptyCase, 2);
-	}
-	else if (difficulty == 3) {
-		Case EmptyCase[30][30];
-		Init(EmptyCase, 3);
-	}
-	else if (difficulty == 4) {
-		Case EmptyCase[100][100];
-		Init(EmptyCase, 4);
-	}
+	Init(T,difficulty);
 	while (1) {
-		ShowGrid(EmptyCase,difficulty);
+		ShowGrid(T,difficulty);
 		clrscr();
-		ShowGrid(EmptyCase, difficulty);
+		ShowGrid(T, difficulty);
 		if (isError == 1) {
 			printf("merci de renseigner une case non selectionné !\n\n");
 		}
-		int verif = verifWin(EmptyCase);
+		int verif = verifWin(T,difficulty);
 		if (verif == 1) {
 			puts("Voulez vous rejouer?");
 			scanf_s(" %d", &playAgain);
@@ -85,20 +59,19 @@ int main()
 		if (flag == 1) {
 			puts("Quelle case voulez vous drapeauter ? :");
 			scanf_s("%d/%d", &playerchoicex, &playerchoicey);
-			if (EmptyCase[playerchoicex][playerchoicey].isFlaged != 1) {
-				EmptyCase[playerchoicex][playerchoicey].isFlaged = 1;
-				isError = 0;
+			if (T[playerchoicex][playerchoicey].isFlaged != 1) {
+				T[playerchoicex][playerchoicey].isFlaged = 1;
 
 			}
 			else {
-				isError = 1;
+				T[playerchoicex][playerchoicey].isFlaged = 0;
 			}
 		}
 		else {
 			puts("Quelle case voulez vous decouvrir ? :");
 			scanf_s("%d/%d", &playerchoicex, &playerchoicey);
-			if (EmptyCase[playerchoicex][playerchoicey].isClicked != 1) {
-				EmptyCase[playerchoicex][playerchoicey].isClicked = 1;
+			if (T[playerchoicex][playerchoicey].isClicked != 1) {
+				T[playerchoicex][playerchoicey].isClicked = 1;
 				isError = 0;
 			}
 			else {
@@ -108,7 +81,7 @@ int main()
 	}
 
 }
-void Init(Case EmptyCase[10][10] , int difficulty){
+void Init(Case** T, int difficulty){
 	int x;
 	int y;
 	int i;
@@ -118,36 +91,24 @@ void Init(Case EmptyCase[10][10] , int difficulty){
 	int bombsnear = 0;
 	int debug = 0;
 	int debug2 = 0;
-	int max;
-	if (difficulty == 1) {
-		max = 10;
-	}else if (difficulty == 2) {
-		max = 20;
-	}
-	else if (difficulty == 3) {
-		max = 30;
-	}
-	else if (difficulty == 4) {
-		max = 100;
-	}
-	for (x = 0; x < max; x++) {
-		for (y = 0; y < max; y++) {
-			EmptyCase[x][y].isBomb = 0;
-			EmptyCase[x][y].bombsNearby = 0;
-			EmptyCase[x][y].isClicked = 0;
+	for (x = 0; x < (10 * difficulty); x++) {
+		for (y = 0; y < (10 * difficulty); y++) {
+			T[x][y].isBomb = 0;
+			T[x][y].bombsNearby = 0;
+			T[x][y].isClicked = 0;
 		}
 	}
 
-	for (k = 0; k < 10; k++)
+	for (k = 0; k < 10 * difficulty*2; k++)
 	{
-		int xrand = getRandom(10);
-		int yrand = getRandom(10);
+		int xrand = getRandom((10 * difficulty));
+		int yrand = getRandom((10 * difficulty));
 		printf("%d/%d ", xrand , yrand);
-		EmptyCase[xrand][yrand].isBomb = 1;
+		T[xrand][yrand].isBomb = 1;
 			for (i = -1; i < 2; i++) {
 				for (j = -1; j < 2; j++) {
-					if (0 <= (yrand + j) && (yrand + j) < 10 && 0 <= (xrand + i) && (xrand + i) < 10) {
-						EmptyCase[xrand+i][yrand+j].bombsNearby +=1;
+					if (0 <= (yrand + j) && (yrand + j) < (10 * difficulty) && 0 <= (xrand + i) && (xrand + i) < (10 * difficulty)) {
+						T[xrand+i][yrand+j].bombsNearby +=1;
 								}
 							}
 						}
@@ -155,26 +116,13 @@ void Init(Case EmptyCase[10][10] , int difficulty){
 				}
 
 
-void ShowGrid(Case CaseList[10][10], int difficulty) {
+void ShowGrid(Case** T, int difficulty) {
 	int x;
 	int y;
 	int i;
 	int j;
-	int max;
-	if (difficulty == 1) {
-		max = 10;
-	}
-	else if (difficulty == 2) {
-		max = 20;
-	}
-	else if (difficulty == 3) {
-		max = 30;
-	}
-	else if (difficulty == 4) {
-		max = 100;
-	}
-	for (x = -1; x < max; x++) {
-		for (y = -1; y < max; y++) {
+	for (x = -1; x < (10 * difficulty); x++) {
+		for (y = -1; y < (10 * difficulty); y++) {
 			if (x == -1 || y == -1) {
 				if (x == -1) {
 					if (y == -1) {
@@ -188,8 +136,8 @@ void ShowGrid(Case CaseList[10][10], int difficulty) {
 					printf("%d ", x);
 				}
 			}
-			else if (CaseList[x][y].isClicked == 0) {
-				if (CaseList[x][y].isFlaged == 1) {
+			else if (T[x][y].isClicked == 0) {
+				if (T[x][y].isFlaged == 1) {
 					printf(" F ");
 				}
 				else {
@@ -197,21 +145,21 @@ void ShowGrid(Case CaseList[10][10], int difficulty) {
 				}
 			}
 			else {
-				if (CaseList[x][y].isClicked == 1) {
-					if (CaseList[x][y].isBomb == 1) {
+				if (T[x][y].isClicked == 1) {
+					if (T[x][y].isBomb == 1) {
 						printf(" B ");
-						for (i = 0; i < 10; i++) {
-							for (j = 0; j < 10; j++) {
-								CaseList[i][j].isClicked = 1;
+						for (i = 0; i < (10 * difficulty); i++) {
+							for (j = 0; j < (10 * difficulty); j++) {
+								T[i][j].isClicked = 1;
 							}
 						}
 					}
-					else if (CaseList[x][y].bombsNearby == 0) {
-						revealNear(CaseList, x, y);
+					else if (T[x][y].bombsNearby == 0) {
+						revealNear(T, x, y,difficulty);
 						printf(" 0 ");
 					}
-					else if (CaseList[x][y].bombsNearby > 0) {
-						printf(" %d ", CaseList[x][y].bombsNearby);
+					else if (T[x][y].bombsNearby > 0) {
+						printf(" %d ", T[x][y].bombsNearby);
 					}
 				}
 			}
@@ -235,43 +183,53 @@ int getRandom(int max)
 //        //return input ("Qu'elle case voulez vous marquer :")
 //    
 //}
-void revealNear(Case CaseList[10][10],int casex,int casey) {
+void revealNear(Case** T,int casex,int casey,int difficulty) {
 	int x = casex;
 	int y = casey;
 	int i;
 	int j;
 	for (i = -1; i < 2; i++) {
 		for (j = -1; j < 2; j++) {
-			if (CaseList[x + i][y + j].isBomb == 0 && CaseList[x + i][y + j].isClicked == 0) {
-				if (0 <= (y + j) && (y + j) < 10 && 0 <= (x + i) && (x + i) < 10) {
-					CaseList[x + i][y + j].isClicked = 1;
-					if (CaseList[x + i][y + j].bombsNearby == 0) {
-						revealNear(CaseList, x + i, y + j);
+			if (0 <= (y + j) && (y + j) < (10 * difficulty) && 0 <= (x + i) && (x + i) < (10 * difficulty)) {
+				if (T[x + i][y + j].isBomb == 0 && T[x + i][y + j].isClicked == 0) {
+					T[x + i][y + j].isClicked = 1;
+					if (T[x + i][y + j].bombsNearby == 0) {
+						revealNear(T, x + i, y + j,difficulty);
 					}
 				}
 			}
 		}
 	}
 }
-int verifWin(Case CaseList[10][10]) {
+int verifWin(Case** T, int difficulty) {
 	int x;
 	int y;
 	int i;
 	int j;
 	int casecount = 0;
-	for (x = 0; x < 10; x++) {
-		for (y = 0; y < 10; y++) {
-			if (CaseList[x][y].isClicked == 1 && CaseList[x][y].isBomb == 1) {
+	for (x = 0; x < (10 * difficulty); x++) {
+		for (y = 0; y < (10 * difficulty); y++) {
+			if (T[x][y].isClicked == 1 && T[x][y].isBomb == 1) {
 				printf("Vous avez perdu !");
+				for (int i = 0; i < (10 * difficulty); ++i)
+				{
+					free(T[i]);
+				}
+				free(T);
 				return 1;
 			}
-			else if (CaseList[x][y].isBomb != 1 && CaseList[x][y].isClicked != 1) {
+			else if (T[x][y].isBomb != 1 && T[x][y].isClicked != 1) {
 				casecount++;
 			}
 		}
 	}
 	if (casecount == 0) {
 		printf("Victoire !");
+		for (int i = 0; i < (10 * difficulty); ++i)
+		{
+			free(T[i]);
+		}
+		free(T);
 		return 1;
 	}
 
