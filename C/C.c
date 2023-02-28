@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 //#include <SDL.h>
 
 typedef struct Case {
@@ -81,7 +82,7 @@ int main()
 	}
 
 }
-void Init(Case** T, int difficulty){
+void Init(Case** T, int difficulty) {
 	int x;
 	int y;
 	int i;
@@ -95,25 +96,43 @@ void Init(Case** T, int difficulty){
 		for (y = 0; y < (10 * difficulty); y++) {
 			T[x][y].isBomb = 0;
 			T[x][y].bombsNearby = 0;
-			T[x][y].isClicked = 0;
+			T[x][y].isFlaged = 0;
+			T[x][y].isClicked = 1;
 		}
 	}
-
-	for (k = 0; k < 10 * difficulty*2; k++)
-	{
-		int xrand = getRandom((10 * difficulty));
-		int yrand = getRandom((10 * difficulty));
-		printf("%d/%d ", xrand , yrand);
-		T[xrand][yrand].isBomb = 1;
-			for (i = -1; i < 2; i++) {
-				for (j = -1; j < 2; j++) {
-					if (0 <= (yrand + j) && (yrand + j) < (10 * difficulty) && 0 <= (xrand + i) && (xrand + i) < (10 * difficulty)) {
-						T[xrand+i][yrand+j].bombsNearby +=1;
-								}
-							}
-						}
-					}
+	int length = 10 * difficulty;
+	int lengthAllCoords = length * length;
+	int* coords = (int*)malloc(sizeof(int) * lengthAllCoords);
+	for (j = 0; j < lengthAllCoords; j++) {
+		coords[j] = j;
+	}
+	int bombCount = length * 2;
+	for (k = 0; k < bombCount; k++){
+		int rand = getRandom(lengthAllCoords);
+		int xcoordrand = floor(rand/length);
+		int ycoordrand = rand % length;
+		int index = xcoordrand * 10 + ycoordrand;
+		int xcoord = floor(coords[index] / length);
+		int ycoord = coords[index] % length;
+		for (j = 0; j < lengthAllCoords - 1; j++) {
+			if (j == xcoordrand * 10 + ycoordrand) {
+				for (i = j; i < lengthAllCoords - 1; i++) {
+					coords[i] = coords[i + 1];
 				}
+			}
+		}
+		lengthAllCoords--;
+		T[xcoord][ycoord].isBomb = 1;
+		for (i = -1; i < 2; i++) {
+			for (j = -1; j < 2; j++) {
+				if (0 <= (ycoord + j) && (ycoord + j) < (10 * difficulty) && 0 <= (xcoord + i) && (xcoord + i) < (10 * difficulty)) {
+					T[xcoord + i][ycoord + j].bombsNearby += 1;
+				}
+			}
+		}
+	}
+	free(coords);
+}
 
 
 void ShowGrid(Case** T, int difficulty) {
@@ -171,7 +190,9 @@ void ShowGrid(Case** T, int difficulty) {
 
 int getRandom(int max) 
 {
-	return rand() % max;
+
+	int random = rand() % max;
+	return random;
 }
 
 //void flag(){ 
