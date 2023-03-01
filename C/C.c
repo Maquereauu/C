@@ -6,6 +6,10 @@
 #include <time.h>
 #include <math.h>
 //#include <SDL.h>
+//const int WIDTH = 800;
+//const int HEIGHT = 600;
+//const int POSITION_X = 100;
+//const int POSITION_Y = 100;
 
 typedef struct Case {
 	int isBomb;
@@ -19,38 +23,45 @@ void ShowGrid();
 int getRandom();
 int verifWin();
 void revealNear();
+void Game();
 
 int main()
 {
+	int play = 1;
+	while (play) {
+		printf("%d", play);
+		Game(&play);
+	}
+
+}
+
+void Game(int* play) {
 	int difficulty;
 	puts("Veuillez choisir un mode de difficulté ");
 	scanf_s(" %d", &difficulty);
 	srand(time(NULL));
-	int playAgain = 0;
 	int isError = 0;
 	Case** T = (Case**)malloc(sizeof(Case*) * (10 * difficulty));
 	for (int i = 0; i < (10 * difficulty); ++i)
 	{
 		T[i] = (Case*)malloc(sizeof(Case) * (10 * difficulty));
 	}
-	Init(T,difficulty);
+	Init(T, difficulty);
 	while (1) {
-		ShowGrid(T,difficulty);
+		ShowGrid(T, difficulty);
 		clrscr();
 		ShowGrid(T, difficulty);
 		if (isError == 1) {
 			printf("merci de renseigner une case non selectionné !\n\n");
 		}
-		int verif = verifWin(T,difficulty);
+		int verif = verifWin(T, difficulty);
 		if (verif == 1) {
-			puts("Voulez vous rejouer?");
-			scanf_s(" %d", &playAgain);
-			if (playAgain) {
-				main();
+			for (int i = 0; i < (10 * difficulty); ++i)
+			{
+				free(T[i]);
 			}
-			else {
-				break;
-			}
+			free(T);
+	
 		}
 		int flag = 0;
 		int playerchoicex;
@@ -80,8 +91,9 @@ int main()
 			}
 		}
 	}
-
 }
+
+
 void Init(Case** T, int difficulty) {
 	int x;
 	int y;
@@ -92,15 +104,15 @@ void Init(Case** T, int difficulty) {
 	int bombsnear = 0;
 	int debug = 0;
 	int debug2 = 0;
-	for (x = 0; x < (10 * difficulty); x++) {
-		for (y = 0; y < (10 * difficulty); y++) {
+	int length = 10 * difficulty;
+	for (x = 0; x < (length); x++) {
+		for (y = 0; y < (length); y++) {
 			T[x][y].isBomb = 0;
 			T[x][y].bombsNearby = 0;
 			T[x][y].isFlaged = 0;
-			T[x][y].isClicked = 1;
+			T[x][y].isClicked = 0;
 		}
 	}
-	int length = 10 * difficulty;
 	int lengthAllCoords = length * length;
 	int* coords = (int*)malloc(sizeof(int) * lengthAllCoords);
 	for (j = 0; j < lengthAllCoords; j++) {
@@ -109,23 +121,21 @@ void Init(Case** T, int difficulty) {
 	int bombCount = length * 2;
 	for (k = 0; k < bombCount; k++){
 		int rand = getRandom(lengthAllCoords);
-		int xcoordrand = floor(rand/length);
-		int ycoordrand = rand % length;
-		int index = xcoordrand * 10 + ycoordrand;
-		int xcoord = floor(coords[index] / length);
-		int ycoord = coords[index] % length;
-		for (j = 0; j < lengthAllCoords - 1; j++) {
-			if (j == xcoordrand * 10 + ycoordrand) {
-				for (i = j; i < lengthAllCoords - 1; i++) {
-					coords[i] = coords[i + 1];
-				}
-			}
+		int index = coords[rand];
+		for (int j = index; j < lengthAllCoords - 1; ++j) 
+		{
+			coords[j] = coords[j + 1];
 		}
+
 		lengthAllCoords--;
+
+		int xcoord = index / length;
+		int ycoord = index % length;
 		T[xcoord][ycoord].isBomb = 1;
+
 		for (i = -1; i < 2; i++) {
 			for (j = -1; j < 2; j++) {
-				if (0 <= (ycoord + j) && (ycoord + j) < (10 * difficulty) && 0 <= (xcoord + i) && (xcoord + i) < (10 * difficulty)) {
+				if (0 <= (ycoord + j) && (ycoord + j) < (length) && 0 <= (xcoord + i) && (xcoord + i) < (length)) {
 					T[xcoord + i][ycoord + j].bombsNearby += 1;
 				}
 			}
@@ -190,20 +200,10 @@ void ShowGrid(Case** T, int difficulty) {
 
 int getRandom(int max) 
 {
-
 	int random = rand() % max;
 	return random;
 }
 
-//void flag(){ 
-//    //input ("voulez vous mettre un drapeau :")
-//    //if answer = O 
-//        //return 1 en x , y 
-//        
-//    //else 
-//        //return input ("Qu'elle case voulez vous marquer :")
-//    
-//}
 void revealNear(Case** T,int casex,int casey,int difficulty) {
 	int x = casex;
 	int y = casey;
@@ -232,11 +232,6 @@ int verifWin(Case** T, int difficulty) {
 		for (y = 0; y < (10 * difficulty); y++) {
 			if (T[x][y].isClicked == 1 && T[x][y].isBomb == 1) {
 				printf("Vous avez perdu !");
-				for (int i = 0; i < (10 * difficulty); ++i)
-				{
-					free(T[i]);
-				}
-				free(T);
 				return 1;
 			}
 			else if (T[x][y].isBomb != 1 && T[x][y].isClicked != 1) {
@@ -253,25 +248,30 @@ int verifWin(Case** T, int difficulty) {
 		free(T);
 		return 1;
 	}
-
+	return 0;
 }
+
+int CatchError(int* play) {
+	int playAgain = 0;
+	puts("Voulez vous rejouer?");
+	if (scanf_s(" %d", &playAgain)) {
+		if (playAgain) {
+			return 1;
+		}
+		else {
+			*play = 0;
+			return 0;
+			}
+		}
+		else {
+			printf("Merci de rentrer un nombre entier");
+		}
+	}
+
 void clrscr()
 {
 	system("@cls||clear");
 }
-//int Restart(){}
-
-//int win{
-//    //si VerifWin = 0 
-//        //return Win  
-//    //sinon si  VerifWin != 0  & toute les case = clické (decouverte)
-//        //return "Toute les case n'ont pas été decouverte "
-//    //sinon si case clicked = isbomb 
-//        //return "GAME OVER"
-//        //print "voulez vous recommencer :"
-//}
-
-
 
 // Exécuter le programme : Ctrl+F5 ou menu Déboguer > Exécuter sans débogage
 // Déboguer le programme : F5 ou menu Déboguer > Démarrer le débogage
