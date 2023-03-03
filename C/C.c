@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+//#include <SDL_image.h>
+
 #include <math.h>
 #include <SDL.h>
 const int WIDTH = 800;
@@ -35,6 +37,7 @@ int main()
 			if (SDL_Init(SDL_INIT_EVERYTHING) < 0) { printf("%s\n", SDL_GetError()); exit(-1); }
 			SDL_Window* window;
 			window = SDL_CreateWindow("Hello SDL", POSITION_X, POSITION_Y, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
+			//FLAG
 			SDL_Rect carre_flag;
 			carre_flag.x = 10;
 			carre_flag.y = 10;
@@ -45,11 +48,13 @@ int main()
 			rectangle_flag.y = 10;
 			rectangle_flag.h = 10;
 			rectangle_flag.w = -2;
+			//BACK_Damier
 			SDL_Rect back;
 			back.x = 200;
 			back.y = 50;
 			back.h = 500;
 			back.w = 400;
+			//BOMBE 
 			SDL_Rect rectangle_bomb_vertical;
 			rectangle_bomb_vertical.x = 22;
 			rectangle_bomb_vertical.y = 10;
@@ -77,17 +82,23 @@ int main()
 			trait_bomb.y = 14;
 			trait_bomb.h = 2;
 			trait_bomb.w = 10;
+			//DAMIER
+			
+			SDL_Rect case_damier_1;
+			case_damier_1.x = 200;
+			case_damier_1.y= 50;
+			case_damier_1.h = 20;
+			case_damier_1.w = 20;
 
-			/*SDL_Rect chiffre_0;
-			SDL_Rect chiffre_1;
-			SDL_Rect chiffre_2;
-			SDL_Rect chiffre_3;
-			SDL_Rect chiffre_4;
-			SDL_Rect chiffre_5;
-			SDL_Rect chiffre_6;
-			SDL_Rect chiffre_7;
-			SDL_Rect chiffre_8;
-			SDL_Rect chiffre_9;*/
+			SDL_Rect case_damier_2;
+			case_damier_2.x = 220;
+			case_damier_2.y = 50;
+			case_damier_2.h = 20;
+			case_damier_2.w = 20;
+
+
+
+
 
 
 
@@ -110,18 +121,7 @@ int main()
 				if (SDL_PollEvent(&windowEvent)) {
 					if (windowEvent.type == SDL_QUIT) { break; }
 				}
-				//CHIFFRE
-				/*drawDigit(renderer, 0, 50, 50);
-				drawDigit(renderer, 1, 70, 50);
-				drawDigit(renderer, 2, 90, 50);
-				drawDigit(renderer, 3, 110, 50);
-				drawDigit(renderer, 4, 130, 50);
-				drawDigit(renderer, 5, 50, 70);
-				drawDigit(renderer, 6, 70, 70);
-				drawDigit(renderer, 7, 90, 70);
-				drawDigit(renderer, 8, 110, 70);
-				drawDigit(renderer, 9, 130, 70);*/
-				//CHIFFRE
+		
 				//SDL_Renderer
 				SDL_SetRenderDrawColor(renderer, 169, 169, 169, 255);
 				SDL_RenderClear(renderer);
@@ -155,6 +155,13 @@ int main()
 				SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 				SDL_RenderFillRect(renderer, &carre_flag);
 				//FLAG----------------------
+				//DAMIER-------------------
+				SDL_SetRenderDrawColor(renderer, 110, 148, 240, 255);
+				SDL_RenderFillRect(renderer, &case_damier_1);
+
+				SDL_SetRenderDrawColor(renderer, 38, 70, 147, 255);
+				SDL_RenderFillRect(renderer, &case_damier_2);
+				//DAMIER-------------------
 				SDL_RenderPresent(renderer);
 
 			}
@@ -186,10 +193,11 @@ void Game(int* play) {
 		if (scanf_s(" %d", &difficulty)) {
 			if (difficulty <= 0) {
 				printf("Merci de renseigner une valeur supérieure à 0\n");
+			}else if (difficulty > 6) {
+				printf("Merci de renseigner une valeur inférieure à 7\n");
 			}
-			else if(round(difficulty)==difficulty){
-				printf("mais , %d", &difficulty);
-				/*break;*/
+			else {
+				break;
 			}
 		}
 		else {
@@ -197,7 +205,7 @@ void Game(int* play) {
 			while(getchar() != '\n');
 		}
 	} while (1);
-	printf("%d", difficulty);
+	while (getchar() != '\n');
 	srand(time(NULL));
 	int isError = 0;
 	Case** T = (Case**)malloc(sizeof(Case*) * (10 * difficulty));
@@ -230,34 +238,61 @@ void Game(int* play) {
 		int playerchoicex;
 		int playerchoicey;
 		puts("Voulez-vous découvrir une case ou bien poser un drapeau?(0/1)");
-		scanf_s("%d", &flag);
-		if (flag == 1) {
-			puts("Quelle case voulez vous drapeauter ? :");
-			scanf_s("%d/%d", &playerchoicex, &playerchoicey);
-			if (T[playerchoicex][playerchoicey].isFlaged != 1) {
-				T[playerchoicex][playerchoicey].isFlaged = 1;
+		while(1){
+			if (scanf_s("%d", &flag)) {
+				if (flag == 1) {
+					while (getchar() != '\n');
+					puts("Quelle case voulez vous drapeauter ? :");
+					if (scanf_s("%d/%d", &playerchoicex, &playerchoicey)) {
+						if (T[playerchoicex][playerchoicey].isFlaged != 1) {
+							T[playerchoicex][playerchoicey].isFlaged = 1;
 
-			}
-			else {
-				T[playerchoicex][playerchoicey].isFlaged = 0;
-			}
-		}
-		else {
-			puts("Quelle case voulez vous decouvrir ? :");
-			while (1) {
-				if (scanf_s("%d/%d", &playerchoicex, &playerchoicey)) {
-					if (T[playerchoicex][playerchoicey].isClicked != 1) {
-						T[playerchoicex][playerchoicey].isClicked = 1;
-						isError = 0;
+						}
+						else {
+							T[playerchoicex][playerchoicey].isFlaged = 0;
+						}
+						break;
 					}
 					else {
-						isError = 1;
+						printf("Merci de rentrer des coordonées valides(en nombre entier)\n");
+						while (getchar() != '\n');
 					}
 				}
-				else {
-					printf("Merci de rentrer des coordonées valides(en nombre entier)");
-					printf("%d", &difficulty);
+				else if(flag==0){
+					while (getchar() != '\n');
+					puts("Quelle case voulez vous decouvrir ? :");
+					while (1) {
+						if (scanf_s("%d/%d", &playerchoicex, &playerchoicey)) {
+							if (playerchoicex < difficulty * 10 && playerchoicey < difficulty * 10 && playerchoicex >0 && playerchoicey>0) {
+								if (T[playerchoicex][playerchoicey].isClicked != 1) {
+									T[playerchoicex][playerchoicey].isClicked = 1;
+									isError = 0;
+								}
+								else {
+									isError = 1;
+								}
+								break;
+							}
+							else {
+								printf("Merci de rentrer des coordonées valides(en nombre entier)\n");
+								while (getchar() != '\n');
+							}
+						}
+						else {
+							printf("Merci de rentrer des coordonées valides(en nombre entier)\n");
+							while (getchar() != '\n');
+						}
+					}
+					break;
 				}
+				else {
+					printf("Merci de rentrer 0 pour jouer ou 1 pour poser un drapeau.\n");
+					while (getchar() != '\n');
+				}
+			}
+			else {
+				printf("Merci de rentrer 0 pour jouer ou 1 pour poser un drapeau.\n");
+				while (getchar() != '\n');
 			}
 		}
 	}
@@ -325,14 +360,22 @@ void ShowGrid(Case** T, int difficulty) {
 			if (x == -1 || y == -1) {
 				if (x == -1) {
 					if (y == -1) {
-						printf("D  ");
+						printf("   ");
+					}
+					else if(y<10){
+						printf(" %d ", y);
 					}
 					else {
-						printf("%d  ", y);
+						printf("%d ", y);
 					}
 				}
 				else if (y == -1) {
-					printf("%d ", x);
+					if (x < 10) {
+						printf(" %d ", x);
+					}
+					else {
+						printf("%d ", x);
+					}
 				}
 			}
 			else if (T[x][y].isClicked == 0) {
@@ -441,6 +484,11 @@ void CatchError(int* play,int* InGame) {
 		}
 	}
 }
+
+int checkErrorInt(int max) {
+	
+}
+
 
 void clrscr()
 {
