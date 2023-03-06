@@ -159,7 +159,7 @@ int main()
 				if (SDL_PollEvent(&event)){
 					if (SDL_MOUSEBUTTONDOWN == event.type) {
 						if (SDL_BUTTON_LEFT == event.button.button) {
-							printf("Hello");
+							printf("Hello\n");
 							SDL_RenderCopy(renderer, texture2, NULL, &case_damier[0][0]);
 						}
 					}
