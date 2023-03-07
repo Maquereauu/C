@@ -23,6 +23,7 @@ void ShowGrid();
 int getRandom();
 int verifWin();
 void revealNear();
+void revealNearSDL();
 void Game();
 void PlayAgain();
 void SDL_Render();
@@ -50,93 +51,77 @@ else {
 void SDL_Render() {
 	int difficulty = 1;
 	int* InGame = 1;
+	int GameOver = 0;
 	srand(time(NULL));
-	int i;
-	int j;
-	Case** T = (Case**)malloc(sizeof(Case*) * (10 * difficulty));
-	for (int i = 0; i < (10 * difficulty); ++i)
-	{
-		T[i] = (Case*)malloc(sizeof(Case) * (10 * difficulty));
-	}
-	Init(T, difficulty);
 	int length = 10 * difficulty;
 	int lengthAllCoords = length * length;
-	int* coordscases = (int*)malloc(sizeof(int) * lengthAllCoords);
-	for (j = 0; j < lengthAllCoords; j++) {
-		coordscases[j] = 0;
+	int i;
+	int j;
+	Case** T = (Case**)malloc(sizeof(Case*) * length);
+	int** coordscases = (int**)malloc(sizeof(int*) * length);
+	for (int i = 0; i < (10 * difficulty); ++i)
+	{
+		coordscases[i] = (int*)malloc(sizeof(int) * length);
+		T[i] = (Case*)malloc(sizeof(Case) * length);
 	}
+	Init(T, difficulty);
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) { printf("%s\n", SDL_GetError()); exit(-1); }
 	IMG_Init(IMG_INIT_JPG);
 	SDL_Window* window;
 	window = SDL_CreateWindow("Démineur", POSITION_X, POSITION_Y, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
-	//FLAG
-	SDL_Rect carre_flag;
-	carre_flag.x = 10;
-	carre_flag.y = 10;
-	carre_flag.h = 5;
-	carre_flag.w = 5;
-	SDL_Rect rectangle_flag;
-	rectangle_flag.x = 10;
-	rectangle_flag.y = 10;
-	rectangle_flag.h = 10;
-	rectangle_flag.w = -2;
 	//BACK_Damier
 	SDL_Rect back;
 	back.x = 100;
 	back.y = 50;
 	back.h = 600;
 	back.w = 600;
-	//BOMBE 
-	SDL_Rect rectangle_bomb_vertical;
-	rectangle_bomb_vertical.x = 22;
-	rectangle_bomb_vertical.y = 10;
-	rectangle_bomb_vertical.h = 10;
-	rectangle_bomb_vertical.w = 6;
-
-	SDL_Rect rectangle_bomb_horizontal;
-	rectangle_bomb_horizontal.x = 20;
-	rectangle_bomb_horizontal.y = 12;
-	rectangle_bomb_horizontal.h = 6;
-	rectangle_bomb_horizontal.w = 10;
-
-	SDL_Rect carre_bomb;
-	carre_bomb.x = 21;
-	carre_bomb.y = 11;
-	carre_bomb.h = 8;
-	carre_bomb.w = 8;
-	SDL_Rect meche_bomb;
-	meche_bomb.x = 24;
-	meche_bomb.y = 8;
-	meche_bomb.h = 2;
-	meche_bomb.w = 2;
-	SDL_Rect trait_bomb;
-	trait_bomb.x = 20;
-	trait_bomb.y = 14;
-	trait_bomb.h = 2;
-	trait_bomb.w = 10;
 	SDL_Rect case_damier[10][10];
 	//DAMIER
-	for (i = 0; i < 10; i++) {
-		for (j = 0; j < 10; j++) {
+	for (i = 0; i < length; i++) {
+		for (j = 0; j < length; j++) {
 			case_damier[i][j].x = 100 + j * 60;
 			case_damier[i][j].y = 50 + i * 60;
 			case_damier[i][j].h = 60;
 			case_damier[i][j].w = 60;
+			coordscases[i][j] = 0;
+			printf("%d/%d ", i, j);
 		}
 	}
 
 	SDL_Surface* image = IMG_Load("test.png");
 	SDL_Surface* image2 = IMG_Load("test2.png");
 	SDL_Surface* image3 = IMG_Load("test3.jpg");
+	SDL_Surface* image4 = IMG_Load("1.png");
+	SDL_Surface* image5 = IMG_Load("2.png");
+	SDL_Surface* image6 = IMG_Load("3.png");
+	SDL_Surface* image7 = IMG_Load("4.png");
+	SDL_Surface* image8 = IMG_Load("5.png");
+	SDL_Surface* image9 = IMG_Load("6.png");
+	SDL_Surface* image10 = IMG_Load("7.png");
+	SDL_Surface* image11 = IMG_Load("8.png");
 	if (window == NULL) { printf("%s\n", SDL_GetError()); exit(-1); }
 	//dessiner un composant 
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image);
 	SDL_Texture* texture2 = SDL_CreateTextureFromSurface(renderer, image2);
 	SDL_Texture* texture3 = SDL_CreateTextureFromSurface(renderer, image3);
+	SDL_Texture* texture4 = SDL_CreateTextureFromSurface(renderer, image4);
+	SDL_Texture* texture5 = SDL_CreateTextureFromSurface(renderer, image5);
+	SDL_Texture* texture6 = SDL_CreateTextureFromSurface(renderer, image6);
+	SDL_Texture* texture7 = SDL_CreateTextureFromSurface(renderer, image7);
+	SDL_Texture* texture8 = SDL_CreateTextureFromSurface(renderer, image8);
+	SDL_Texture* texture9 = SDL_CreateTextureFromSurface(renderer, image9);
+	SDL_Texture* texture10 = SDL_CreateTextureFromSurface(renderer, image10);
+	SDL_Texture* texture11 = SDL_CreateTextureFromSurface(renderer, image11);
 	SDL_Event event;
 	while (1) {
 		//
+		if (GameOver == 1) {
+			while (1) {
+				SDL_SetRenderDrawColor(renderer, 169, 169, 169, 255);
+				SDL_RenderClear(renderer);
+			}
+		}
 		if (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) { break; }
 			if (SDL_MOUSEBUTTONDOWN == event.type) {
@@ -146,7 +131,11 @@ void SDL_Render() {
 					x = (x - 100) / 60;
 					y = (y - 50) / 60;
 					if (x < 10 && y < 10 && x >= 0 && y >= 0) {
-						coordscases[(y * 10) + x] = 1;
+						coordscases[y][x] = 1;
+						T[y][x].isClicked = 1;
+						if (T[y][x].bombsNearby == 0) {
+							revealNearSDL(T,coordscases,y,x,difficulty);
+						}
 					}
 				}
 				else if (SDL_BUTTON_RIGHT == event.button.button) {
@@ -155,15 +144,12 @@ void SDL_Render() {
 					x = (x - 100) / 60;
 					y = (y - 50) / 60;
 					if (x < 10 && y < 10 && x >= 0 && y >= 0) {
-						coordscases[(y * 10) + x] = 2;
+						coordscases[y][x] = 2;
 					}
 				}
 				int verif = verifWin(T, difficulty);
 				if (verif == 1) {
-					for (int i = 0; i < (10 * difficulty); ++i) {
-						free(T[i]);
-					}
-					free(T);
+					GameOver = 1;
 				}
 			}
 		}
@@ -174,71 +160,38 @@ void SDL_Render() {
 		SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
 		SDL_RenderFillRect(renderer, &back);
 
-
-		//BOMBE-----------------------
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &rectangle_bomb_vertical);
-
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &rectangle_bomb_horizontal);
-
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &carre_bomb);
-
-		SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255);
-		SDL_RenderFillRect(renderer, &trait_bomb);
-
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &meche_bomb);
-		//BOMBE-----------------------
-
-
-		//FLAG------------------------
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &rectangle_flag);
-
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		SDL_RenderFillRect(renderer, &carre_flag);
-		//FLAG----------------------
 		//DAMIER-------------------
 		for (i = 0; i < 10; i++) {
 			for (j = 0; j < 10; j++) {
-				if (coordscases[(i * 10) + j] == 0) {
+				if (coordscases[i][j] == 0) {
 					SDL_SetRenderDrawColor(renderer, 110, 148, 240, 255);
 					SDL_RenderFillRect(renderer, &case_damier[i][j]);
 				}
-				else if (coordscases[(i * 10) + j] == 1) {
+				else if (coordscases[i][j] == 1) {
 					if (T[i][j].isBomb == 1) {
 						SDL_RenderCopy(renderer, texture3, NULL, &case_damier[i][j]);
 					}
 					else if (T[i][j].bombsNearby > 0) {
-						SDL_RenderCopy(renderer, texture2, NULL, &case_damier[i][j]);
+						switch (T[i][j].bombsNearby) {
+						case 1: SDL_RenderCopy(renderer, texture4, NULL, &case_damier[i][j]); break;
+						case 2: SDL_RenderCopy(renderer, texture5, NULL, &case_damier[i][j]); break;
+						case 3: SDL_RenderCopy(renderer, texture6, NULL, &case_damier[i][j]); break;
+						case 4: SDL_RenderCopy(renderer, texture7, NULL, &case_damier[i][j]); break;
+						case 5: SDL_RenderCopy(renderer, texture8, NULL, &case_damier[i][j]); break;
+						case 6: SDL_RenderCopy(renderer, texture9, NULL, &case_damier[i][j]); break;
+						case 7: SDL_RenderCopy(renderer, texture10, NULL, &case_damier[i][j]); break;
+						case 8: SDL_RenderCopy(renderer, texture11, NULL, &case_damier[i][j]); break;
+
+						}
 					}
 					else {
 						SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
 					}
-					/*else if (T[i][j].bombsNearby > 0) {
-						switch (T[i][j].bombsNearby) {
-						case 1: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-						case 2: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-						case 3: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-						case 4: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-						case 5: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-						case 6: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-						case 7: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-						case 8: SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
-
-						}
-					}*/
 				}
 			}
 			}
 			//DAMIER-------------------
 			SDL_SetRenderDrawColor(renderer, 38, 70, 147, 255);
-			SDL_RenderCopy(renderer, texture, NULL, &case_damier[1][1]);
-			SDL_RenderCopy(renderer, texture, NULL, &case_damier[9][9]);
-			SDL_RenderCopy(renderer, texture2, NULL, &case_damier[2][2]);
-			SDL_RenderCopy(renderer, texture2, NULL, &case_damier[8][8]);
 			if (!image)
 			{
 				printf("Erreur de chargement de l'image : %s", SDL_GetError());
@@ -246,12 +199,17 @@ void SDL_Render() {
 			}
 			SDL_RenderPresent(renderer);
 		}
+	for (int i = 0; i < (10 * difficulty); ++i) {
+			free(T[i]);
+			free(coordscases[i]);
+		}
+		free(T);
+		free(coordscases);
 		SDL_DestroyRenderer(renderer);
 		SDL_FreeSurface(image); //Équivalent du destroyTexture pour les surface, permet de libérer la mémoire quand on n'a plus besoin d'une surface
 		IMG_Quit();
 		SDL_DestroyWindow(window);
 		SDL_Quit();
-		free(coordscases);
 		return 0;
 	}
 
@@ -495,7 +453,7 @@ int getRandom(int max)
 	return random;
 }
 
-void revealNear(Case** T,int casex,int casey,int difficulty) {
+void revealNear(Case** T, int casex, int casey, int difficulty) {
 	int x = casex;
 	int y = casey;
 	int i;
@@ -506,7 +464,27 @@ void revealNear(Case** T,int casex,int casey,int difficulty) {
 				if (T[x + i][y + j].isBomb == 0 && T[x + i][y + j].isClicked == 0) {
 					T[x + i][y + j].isClicked = 1;
 					if (T[x + i][y + j].bombsNearby == 0) {
-						revealNear(T, x + i, y + j,difficulty);
+						revealNear(T, x + i, y + j, difficulty);
+					}
+				}
+			}
+		}
+	}
+}
+
+void revealNearSDL(Case** T,int** list, int casex, int casey, int difficulty) {
+	int x = casex;
+	int y = casey;
+	int i;
+	int j;
+	for (i = -1; i < 2; i++) {
+		for (j = -1; j < 2; j++) {
+			if (0 <= (y + j) && (y + j) < (10 * difficulty) && 0 <= (x + i) && (x + i) < (10 * difficulty)) {
+				if (T[x + i][y + j].isBomb == 0 && T[x + i][y + j].isClicked == 0) {
+					T[x + i][y + j].isClicked = 1;
+					list[x + i][y + i] = 1;
+					if (T[x + i][y + j].bombsNearby == 0) {
+						revealNearSDL(T,list, x + i, y + j, difficulty);
 					}
 				}
 			}
