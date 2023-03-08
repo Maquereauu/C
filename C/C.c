@@ -27,17 +27,20 @@ void revealNearSDL();
 void Game();
 void PlayAgain();
 void SDL_Render();
+void GameSDL();
+void MenuSDL();
+
 
 int main()
 {
 	int choice;
+	int* play = 1;
 	puts("Terminal ou Graphique?");
 	if (scanf_s(" %d", &choice)) {
 		if (choice == 1) {
-			SDL_Render();
+			SDL_Render(&play);
 		}
 		else {
-			int* play = 1;
 			while (play) {
 				Game(&play);
 			}
@@ -48,7 +51,23 @@ else {
 	}
 }
 
-void SDL_Render() {
+void SDL_Render(int* play) {
+	int i = 1;
+	while (*play) {
+		if (i == 0) {
+			MenuSDL();
+		}
+		else {
+			GameSDL(play);
+		}
+	}
+}
+
+void MenuSDL() {
+}
+
+void GameSDL(int* play) {
+	int close = 0;
 	int difficulty = 1;
 	int* InGame = 1;
 	int GameOver = 0;
@@ -58,10 +77,8 @@ void SDL_Render() {
 	int i;
 	int j;
 	Case** T = (Case**)malloc(sizeof(Case*) * length);
-	int** coordscases = (int**)malloc(sizeof(int*) * length);
 	for (int i = 0; i < (10 * difficulty); ++i)
 	{
-		coordscases[i] = (int*)malloc(sizeof(int) * length);
 		T[i] = (Case*)malloc(sizeof(Case) * length);
 	}
 	Init(T, difficulty);
@@ -75,6 +92,16 @@ void SDL_Render() {
 	back.y = 50;
 	back.h = 600;
 	back.w = 600;
+	SDL_Rect menu;
+	menu.x = 50;
+	menu.y = 25;
+	menu.h = 700;
+	menu.w = 700;
+	SDL_Rect playAgainRect;
+	playAgainRect.x = 300;
+	playAgainRect.y = 450;
+	playAgainRect.h = 100;
+	playAgainRect.w = 200;
 	SDL_Rect case_damier[10][10];
 	//DAMIER
 	for (i = 0; i < length; i++) {
@@ -83,14 +110,12 @@ void SDL_Render() {
 			case_damier[i][j].y = 50 + i * 60;
 			case_damier[i][j].h = 60;
 			case_damier[i][j].w = 60;
-			coordscases[i][j] = 0;
-			printf("%d/%d ", i, j);
 		}
 	}
 
-	SDL_Surface* image = IMG_Load("test.png");
+	SDL_Surface* image = IMG_Load("0.png");
 	SDL_Surface* image2 = IMG_Load("test2.png");
-	SDL_Surface* image3 = IMG_Load("test3.jpg");
+	SDL_Surface* image3 = IMG_Load("Bomb.png");
 	SDL_Surface* image4 = IMG_Load("1.png");
 	SDL_Surface* image5 = IMG_Load("2.png");
 	SDL_Surface* image6 = IMG_Load("3.png");
@@ -99,9 +124,11 @@ void SDL_Render() {
 	SDL_Surface* image9 = IMG_Load("6.png");
 	SDL_Surface* image10 = IMG_Load("7.png");
 	SDL_Surface* image11 = IMG_Load("8.png");
+	SDL_Surface* image12 = IMG_Load("flag.png");
 	if (window == NULL) { printf("%s\n", SDL_GetError()); exit(-1); }
 	//dessiner un composant 
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image);
 	SDL_Texture* texture2 = SDL_CreateTextureFromSurface(renderer, image2);
 	SDL_Texture* texture3 = SDL_CreateTextureFromSurface(renderer, image3);
@@ -113,43 +140,62 @@ void SDL_Render() {
 	SDL_Texture* texture9 = SDL_CreateTextureFromSurface(renderer, image9);
 	SDL_Texture* texture10 = SDL_CreateTextureFromSurface(renderer, image10);
 	SDL_Texture* texture11 = SDL_CreateTextureFromSurface(renderer, image11);
+	SDL_Texture* texture12 = SDL_CreateTextureFromSurface(renderer, image12);
 	SDL_Event event;
 	while (1) {
 		//
 		if (GameOver == 1) {
-			while (1) {
-				SDL_SetRenderDrawColor(renderer, 169, 169, 169, 255);
-				SDL_RenderClear(renderer);
-			}
-		}
-		if (SDL_PollEvent(&event)) {
-			if (event.type == SDL_QUIT) { break; }
-			if (SDL_MOUSEBUTTONDOWN == event.type) {
-				if (SDL_BUTTON_LEFT == event.button.button) {
-					int x, y;
-					SDL_GetMouseState(&x, &y);
-					x = (x - 100) / 60;
-					y = (y - 50) / 60;
-					if (x < 10 && y < 10 && x >= 0 && y >= 0) {
-						coordscases[y][x] = 1;
-						T[y][x].isClicked = 1;
-						if (T[y][x].bombsNearby == 0) {
-							revealNearSDL(T,coordscases,y,x,difficulty);
+			if (SDL_PollEvent(&event)) {
+				if (event.type == SDL_QUIT) { close = 1; break; }
+				if (SDL_MOUSEBUTTONDOWN == event.type) {
+					if (SDL_BUTTON_LEFT == event.button.button) {
+						int x, y;
+						SDL_GetMouseState(&x, &y);
+						if (x >= 300 && x <= 500 && y >= 450 && y <= 550) {
+							for (int i = 0; i < (10 * difficulty); ++i) {
+								free(T[i]);
+							}
+							free(T);
+							SDL_DestroyRenderer(renderer);
+							SDL_FreeSurface(image); //Équivalent du destroyTexture pour les surface, permet de libérer la mémoire quand on n'a plus besoin d'une surface
+							IMG_Quit();
+							SDL_DestroyWindow(window);
+							SDL_Quit();
+							break;
 						}
 					}
 				}
-				else if (SDL_BUTTON_RIGHT == event.button.button) {
-					int x, y;
-					SDL_GetMouseState(&x, &y);
-					x = (x - 100) / 60;
-					y = (y - 50) / 60;
-					if (x < 10 && y < 10 && x >= 0 && y >= 0) {
-						coordscases[y][x] = 2;
+			}
+		}
+		else {
+			if (SDL_PollEvent(&event)) {
+				if (event.type == SDL_QUIT) { close = 1; break; }
+				if (SDL_MOUSEBUTTONDOWN == event.type) {
+					if (SDL_BUTTON_LEFT == event.button.button) {
+						int x, y;
+						SDL_GetMouseState(&x, &y);
+						x = (x - 100) / 60;
+						y = (y - 50) / 60;
+						if (x < 10 && y < 10 && x >= 0 && y >= 0) {
+							T[y][x].isClicked = 1;
+							if (T[y][x].bombsNearby == 0) {
+								revealNear(T, y, x, difficulty);
+							}
+						}
 					}
-				}
-				int verif = verifWin(T, difficulty);
-				if (verif == 1) {
-					GameOver = 1;
+					else if (SDL_BUTTON_RIGHT == event.button.button) {
+						int x, y;
+						SDL_GetMouseState(&x, &y);
+						x = (x - 100) / 60;
+						y = (y - 50) / 60;
+						if (x < 10 && y < 10 && x >= 0 && y >= 0) {
+							T[y][x].isFlaged = 1;
+						}
+					}
+					int verif = verifWin(T, difficulty);
+					if (verif == 1) {
+						GameOver = 1;
+					}
 				}
 			}
 		}
@@ -163,11 +209,7 @@ void SDL_Render() {
 		//DAMIER-------------------
 		for (i = 0; i < 10; i++) {
 			for (j = 0; j < 10; j++) {
-				if (coordscases[i][j] == 0) {
-					SDL_SetRenderDrawColor(renderer, 110, 148, 240, 255);
-					SDL_RenderFillRect(renderer, &case_damier[i][j]);
-				}
-				else if (coordscases[i][j] == 1) {
+				if (T[i][j].isClicked == 1) {
 					if (T[i][j].isBomb == 1) {
 						SDL_RenderCopy(renderer, texture3, NULL, &case_damier[i][j]);
 					}
@@ -181,37 +223,48 @@ void SDL_Render() {
 						case 6: SDL_RenderCopy(renderer, texture9, NULL, &case_damier[i][j]); break;
 						case 7: SDL_RenderCopy(renderer, texture10, NULL, &case_damier[i][j]); break;
 						case 8: SDL_RenderCopy(renderer, texture11, NULL, &case_damier[i][j]); break;
-
 						}
 					}
 					else {
 						SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
 					}
 				}
+				else if (T[i][j].isFlaged == 1) {
+					SDL_RenderCopy(renderer, texture12, NULL, &case_damier[i][j]);
+				}
+				else if (T[i][j].isClicked == 0) {
+					SDL_SetRenderDrawColor(renderer, 110, 148, 240, 255);
+					SDL_RenderFillRect(renderer, &case_damier[i][j]);
+				}
 			}
-			}
-			//DAMIER-------------------
-			SDL_SetRenderDrawColor(renderer, 38, 70, 147, 255);
-			if (!image)
-			{
-				printf("Erreur de chargement de l'image : %s", SDL_GetError());
-				return -1;
-			}
-			SDL_RenderPresent(renderer);
 		}
-	for (int i = 0; i < (10 * difficulty); ++i) {
+		//DAMIER-------------------
+		if (!image)
+		{
+			printf("Erreur de chargement de l'image : %s", SDL_GetError());
+			return -1;
+		}
+		if (GameOver == 1) {
+			SDL_SetRenderDrawColor(renderer, 200, 200, 200, 150);
+			SDL_RenderFillRect(renderer, &menu);
+			SDL_SetRenderDrawColor(renderer, 200, 200, 200, 200);
+			SDL_RenderFillRect(renderer, &playAgainRect);
+		}
+		SDL_RenderPresent(renderer);
+	}
+	if (close) {
+		for (int i = 0; i < (10 * difficulty); ++i) {
 			free(T[i]);
-			free(coordscases[i]);
 		}
 		free(T);
-		free(coordscases);
 		SDL_DestroyRenderer(renderer);
 		SDL_FreeSurface(image); //Équivalent du destroyTexture pour les surface, permet de libérer la mémoire quand on n'a plus besoin d'une surface
 		IMG_Quit();
 		SDL_DestroyWindow(window);
 		SDL_Quit();
-		return 0;
+		*play = 0;
 	}
+}
 
 void Game(int* play) {
 	int difficulty;
@@ -472,25 +525,6 @@ void revealNear(Case** T, int casex, int casey, int difficulty) {
 	}
 }
 
-void revealNearSDL(Case** T,int** list, int casex, int casey, int difficulty) {
-	int x = casex;
-	int y = casey;
-	int i;
-	int j;
-	for (i = -1; i < 2; i++) {
-		for (j = -1; j < 2; j++) {
-			if (0 <= (y + j) && (y + j) < (10 * difficulty) && 0 <= (x + i) && (x + i) < (10 * difficulty)) {
-				if (T[x + i][y + j].isBomb == 0 && T[x + i][y + j].isClicked == 0) {
-					T[x + i][y + j].isClicked = 1;
-					list[x + i][y + i] = 1;
-					if (T[x + i][y + j].bombsNearby == 0) {
-						revealNearSDL(T,list, x + i, y + j, difficulty);
-					}
-				}
-			}
-		}
-	}
-}
 int verifWin(Case** T, int difficulty) {
 	int x;
 	int y;
@@ -534,10 +568,6 @@ void PlayAgain(int* play,int* InGame) {
 			printf("Merci de rentrer un nombre entier");
 		}
 	}
-}
-
-int checkErrorInt(int max) {
-	
 }
 
 
