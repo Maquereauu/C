@@ -6,6 +6,7 @@
 #include <SDL_image.h>
 #include <math.h>
 #include <SDL.h>
+#include <SDL_mixer.h>
 const int WIDTH = 800;
 const int HEIGHT = 800;
 const int POSITION_X = 100;
@@ -52,36 +53,171 @@ else {
 }
 
 void SDL_Render(int* play) {
-	int i = 1;
+	int* InMenu = 1;
+	int* difficulty;
 	while (*play) {
-		if (i == 0) {
-			MenuSDL();
+		if (InMenu == 1) {
+			MenuSDL(play,&difficulty,&InMenu);
 		}
 		else {
-			GameSDL(play);
+			GameSDL(play,&difficulty,&InMenu);
 		}
 	}
 }
 
-void MenuSDL() {
+void MenuSDL(int* play , int* difficulty, int* InMenu) {
+	int close = 0;
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) { printf("%s\n", SDL_GetError()); exit(-1); }
+	IMG_Init(IMG_INIT_JPG);
+	int init2 = Mix_Init(0);
+	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
+	Mix_Music* music = Mix_LoadMUS("BeePatrol.wav");
+	Mix_Chunk* sound = Mix_LoadWAV("BeePatrol.wav");
+	Mix_PlayMusic(music, -1);
+	SDL_Window* window;
+	window = SDL_CreateWindow("Menu", POSITION_X, POSITION_Y, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
+	SDL_Rect back;
+	back.x = 100;
+	back.y = 50;
+	back.h = 600;
+	back.w = 600;
+	SDL_Rect difficulty1;
+	difficulty1.x = 125;
+	difficulty1.y = 250;
+	difficulty1.h = 100;
+	difficulty1.w = 50;
+	SDL_Rect difficulty2;
+	difficulty2.x = 225;
+	difficulty2.y = 250;
+	difficulty2.h = 100;
+	difficulty2.w = 50;
+	SDL_Rect difficulty3;
+	difficulty3.x = 325;
+	difficulty3.y = 250;
+	difficulty3.h = 100;
+	difficulty3.w = 50;
+	SDL_Rect difficulty4;
+	difficulty4.x = 425;
+	difficulty4.y = 250;
+	difficulty4.h = 100;
+	difficulty4.w = 50;
+	SDL_Rect difficulty5;
+	difficulty5.x = 525;
+	difficulty5.y = 250;
+	difficulty5.h = 100;
+	difficulty5.w = 50;
+	SDL_Rect difficulty6;
+	difficulty6.x = 625;
+	difficulty6.y = 250;
+	difficulty6.h = 100;
+	difficulty6.w = 50;
+	const char* path[] =
+	{
+		"1.png",
+		"2.png",
+		"3.png",
+		"4.png",
+		"5.png",
+		"6.png",
+	};
+	int texture_length = sizeof(path) / sizeof(path[0]);
+
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	SDL_Texture*** textures = (SDL_Texture***)malloc(sizeof(SDL_Texture**) * texture_length);
+	for (int i = 0; i < texture_length; ++i)
+	{
+		textures[i] = (SDL_Texture**)malloc(sizeof(SDL_Texture*));
+	}
+
+	for (int i = 0; i < texture_length; ++i)
+	{
+		SDL_Surface* image = IMG_Load(path[i]);
+		textures[i] = SDL_CreateTextureFromSurface(renderer, image);
+	}
+	SDL_Event event;
+	Mix_PlayChannel(-1, sound, -1);
+	while (1) {
+		if (SDL_PollEvent(&event)) {
+			if (event.type == SDL_QUIT) { close = 1;*play = 0; break; }
+			if (SDL_MOUSEBUTTONDOWN == event.type) {
+				if (SDL_BUTTON_LEFT == event.button.button) {
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					if (x <= 175 && x >= 125 && y <= 350 && y >= 250) {
+						*difficulty = 1;
+						*InMenu = 0;
+						close = 1;
+						break;
+					}
+					else if (x <= 275 && x >= 225 && y <= 350 && y >= 250) {
+						*difficulty = 2;
+						*InMenu = 0;
+						close = 1;
+						break;
+					}
+					else if (x <= 375 && x >= 325 && y <= 350 && y >= 250) {
+						*difficulty = 3;
+						*InMenu = 0;
+						close = 1;
+						break;
+					}
+					else if (x <= 475 && x >= 425 && y <= 350 && y >= 250) {
+						*difficulty = 4;
+						*InMenu = 0;
+						close = 1;
+						break;
+					}
+					else if (x <= 575 && x >= 525 && y <= 350 && y >= 250) {
+						*difficulty = 5;
+						*InMenu = 0;
+						close = 1;
+						break;
+					}
+					else if (x <= 675 && x >= 625 && y <= 350 && y >= 250) {
+						*difficulty = 6;
+						*InMenu = 0;
+						close = 1;
+						break;
+					}
+				}
+			}
+		}
+		SDL_SetRenderDrawColor(renderer, 169, 169, 169, 255);
+		SDL_RenderClear(renderer);
+
+		SDL_RenderCopy(renderer, textures[0], NULL, &difficulty1);
+		SDL_RenderCopy(renderer, textures[1], NULL, &difficulty2);
+		SDL_RenderCopy(renderer, textures[2], NULL, &difficulty3);
+		SDL_RenderCopy(renderer, textures[3], NULL, &difficulty4);
+		SDL_RenderCopy(renderer, textures[4], NULL, &difficulty5);
+		SDL_RenderCopy(renderer, textures[5], NULL, &difficulty6);
+		SDL_RenderPresent(renderer);
+	}
+		if (close) {
+			Mix_FreeMusic(music);
+			Mix_CloseAudio();
+			SDL_DestroyRenderer(renderer);
+			IMG_Quit();
+			SDL_DestroyWindow(window);
+			SDL_Quit();
+		}
 }
 
-void GameSDL(int* play) {
+void GameSDL(int* play , int* difficulty , int* InMenu) {
 	int close = 0;
-	int difficulty = 1;
 	int* InGame = 1;
 	int GameOver = 0;
 	srand(time(NULL));
-	int length = 10 * difficulty;
-	int lengthAllCoords = length * length;
+	int length = 10 * *difficulty;
 	int i;
 	int j;
 	Case** T = (Case**)malloc(sizeof(Case*) * length);
-	for (int i = 0; i < (10 * difficulty); ++i)
+	for (int i = 0; i < length; ++i)
 	{
 		T[i] = (Case*)malloc(sizeof(Case) * length);
 	}
-	Init(T, difficulty);
+	Init(T, *difficulty);
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) { printf("%s\n", SDL_GetError()); exit(-1); }
 	IMG_Init(IMG_INIT_JPG);
 	SDL_Window* window;
@@ -102,48 +238,55 @@ void GameSDL(int* play) {
 	playAgainRect.y = 450;
 	playAgainRect.h = 100;
 	playAgainRect.w = 200;
-	SDL_Rect case_damier[10][10];
+	SDL_Rect** case_damier = (SDL_Rect**)malloc(sizeof(SDL_Rect*) * length);
+	for (int i = 0; i < length; ++i)
+	{
+		case_damier[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect) * length);
+	}
 	//DAMIER
 	for (i = 0; i < length; i++) {
 		for (j = 0; j < length; j++) {
-			case_damier[i][j].x = 100 + j * 60;
-			case_damier[i][j].y = 50 + i * 60;
-			case_damier[i][j].h = 60;
-			case_damier[i][j].w = 60;
+			case_damier[i][j].x = 100 + j * (60 / *difficulty)+1;
+			case_damier[i][j].y = 50 + i * (60 / *difficulty)+1;
+			case_damier[i][j].h = 58/ *difficulty;
+			case_damier[i][j].w = 58/ *difficulty;
 		}
 	}
 
-	SDL_Surface* image = IMG_Load("0.png");
-	SDL_Surface* image2 = IMG_Load("test2.png");
-	SDL_Surface* image3 = IMG_Load("Bomb.png");
-	SDL_Surface* image4 = IMG_Load("1.png");
-	SDL_Surface* image5 = IMG_Load("2.png");
-	SDL_Surface* image6 = IMG_Load("3.png");
-	SDL_Surface* image7 = IMG_Load("4.png");
-	SDL_Surface* image8 = IMG_Load("5.png");
-	SDL_Surface* image9 = IMG_Load("6.png");
-	SDL_Surface* image10 = IMG_Load("7.png");
-	SDL_Surface* image11 = IMG_Load("8.png");
-	SDL_Surface* image12 = IMG_Load("flag.png");
-	if (window == NULL) { printf("%s\n", SDL_GetError()); exit(-1); }
-	//dessiner un composant 
+	const char* path[] =
+	{
+		"0.png",
+		"Bomb.png",
+		"1.png",
+		"2.png",
+		"3.png",
+		"4.png",
+		"5.png",
+		"6.png",
+		"7.png",
+		"8.png",
+		"flag.png",
+		"emptycase.png"
+	};
+
+	int texture_length = sizeof(path) / sizeof(path[0]);
+
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image);
-	SDL_Texture* texture2 = SDL_CreateTextureFromSurface(renderer, image2);
-	SDL_Texture* texture3 = SDL_CreateTextureFromSurface(renderer, image3);
-	SDL_Texture* texture4 = SDL_CreateTextureFromSurface(renderer, image4);
-	SDL_Texture* texture5 = SDL_CreateTextureFromSurface(renderer, image5);
-	SDL_Texture* texture6 = SDL_CreateTextureFromSurface(renderer, image6);
-	SDL_Texture* texture7 = SDL_CreateTextureFromSurface(renderer, image7);
-	SDL_Texture* texture8 = SDL_CreateTextureFromSurface(renderer, image8);
-	SDL_Texture* texture9 = SDL_CreateTextureFromSurface(renderer, image9);
-	SDL_Texture* texture10 = SDL_CreateTextureFromSurface(renderer, image10);
-	SDL_Texture* texture11 = SDL_CreateTextureFromSurface(renderer, image11);
-	SDL_Texture* texture12 = SDL_CreateTextureFromSurface(renderer, image12);
+	SDL_Texture*** textures = (SDL_Texture***)malloc(sizeof(SDL_Texture**) * texture_length);
+	for (int i = 0; i < texture_length; ++i)
+	{
+		textures[i] = (SDL_Texture**)malloc(sizeof(SDL_Texture*));
+	}
+
+	for (int i = 0; i < texture_length; ++i)
+	{
+		SDL_Surface* image = IMG_Load(path[i]);
+		textures[i] = SDL_CreateTextureFromSurface(renderer, image);
+	}
 	SDL_Event event;
 	while (1) {
-		//
+		ShowGrid(T, *difficulty);
 		if (GameOver == 1) {
 			if (SDL_PollEvent(&event)) {
 				if (event.type == SDL_QUIT) { close = 1; break; }
@@ -152,16 +295,19 @@ void GameSDL(int* play) {
 						int x, y;
 						SDL_GetMouseState(&x, &y);
 						if (x >= 300 && x <= 500 && y >= 450 && y <= 550) {
-							for (int i = 0; i < (10 * difficulty); ++i) {
+							for (int i = 0; i < length; ++i) {
 								free(T[i]);
+								free(case_damier[i]);
 							}
 							free(T);
+							free(case_damier);
 							SDL_DestroyRenderer(renderer);
-							SDL_FreeSurface(image); //Équivalent du destroyTexture pour les surface, permet de libérer la mémoire quand on n'a plus besoin d'une surface
 							IMG_Quit();
 							SDL_DestroyWindow(window);
 							SDL_Quit();
+							*InMenu = 1;
 							break;
+
 						}
 					}
 				}
@@ -174,25 +320,32 @@ void GameSDL(int* play) {
 					if (SDL_BUTTON_LEFT == event.button.button) {
 						int x, y;
 						SDL_GetMouseState(&x, &y);
-						x = (x - 100) / 60;
-						y = (y - 50) / 60;
-						if (x < 10 && y < 10 && x >= 0 && y >= 0) {
-							T[y][x].isClicked = 1;
-							if (T[y][x].bombsNearby == 0) {
-								revealNear(T, y, x, difficulty);
+						x = (x - 100) / (60 / *difficulty);
+						y = (y - 50) / (60 / *difficulty);
+						if (x < length && y < length && x >= 0 && y >= 0) {
+							if (T[y][x].isFlaged != 1) {
+								T[y][x].isClicked = 1;
+								if (T[y][x].bombsNearby == 0) {
+									revealNear(T, y, x, *difficulty);
+								}
 							}
 						}
 					}
 					else if (SDL_BUTTON_RIGHT == event.button.button) {
 						int x, y;
 						SDL_GetMouseState(&x, &y);
-						x = (x - 100) / 60;
-						y = (y - 50) / 60;
-						if (x < 10 && y < 10 && x >= 0 && y >= 0) {
-							T[y][x].isFlaged = 1;
+						x = (x - 100) / (60 / *difficulty);
+						y = (y - 50) / (60 / *difficulty);
+						if (x < length && y < length && x >= 0 && y >= 0) {
+							if (T[y][x].isFlaged == 0) {
+								T[y][x].isFlaged = 1;
+							}
+							else {
+								T[y][x].isFlaged = 0;
+							}
 						}
 					}
-					int verif = verifWin(T, difficulty);
+					int verif = verifWin(T, *difficulty);
 					if (verif == 1) {
 						GameOver = 1;
 					}
@@ -207,58 +360,58 @@ void GameSDL(int* play) {
 		SDL_RenderFillRect(renderer, &back);
 
 		//DAMIER-------------------
-		for (i = 0; i < 10; i++) {
-			for (j = 0; j < 10; j++) {
+		for (i = 0; i < length; i++) {
+			for (j = 0; j < length; j++) {
 				if (T[i][j].isClicked == 1) {
 					if (T[i][j].isBomb == 1) {
-						SDL_RenderCopy(renderer, texture3, NULL, &case_damier[i][j]);
+						SDL_RenderCopy(renderer, textures[1], NULL, &case_damier[i][j]);
 					}
 					else if (T[i][j].bombsNearby > 0) {
 						switch (T[i][j].bombsNearby) {
-						case 1: SDL_RenderCopy(renderer, texture4, NULL, &case_damier[i][j]); break;
-						case 2: SDL_RenderCopy(renderer, texture5, NULL, &case_damier[i][j]); break;
-						case 3: SDL_RenderCopy(renderer, texture6, NULL, &case_damier[i][j]); break;
-						case 4: SDL_RenderCopy(renderer, texture7, NULL, &case_damier[i][j]); break;
-						case 5: SDL_RenderCopy(renderer, texture8, NULL, &case_damier[i][j]); break;
-						case 6: SDL_RenderCopy(renderer, texture9, NULL, &case_damier[i][j]); break;
-						case 7: SDL_RenderCopy(renderer, texture10, NULL, &case_damier[i][j]); break;
-						case 8: SDL_RenderCopy(renderer, texture11, NULL, &case_damier[i][j]); break;
+						case 1: SDL_RenderCopy(renderer, textures[2], NULL, &case_damier[i][j]); break;
+						case 2: SDL_RenderCopy(renderer, textures[3], NULL, &case_damier[i][j]); break;
+						case 3: SDL_RenderCopy(renderer, textures[4], NULL, &case_damier[i][j]); break;
+						case 4: SDL_RenderCopy(renderer, textures[5], NULL, &case_damier[i][j]); break;
+						case 5: SDL_RenderCopy(renderer, textures[6], NULL, &case_damier[i][j]); break;
+						case 6: SDL_RenderCopy(renderer, textures[7], NULL, &case_damier[i][j]); break;
+						case 7: SDL_RenderCopy(renderer, textures[8], NULL, &case_damier[i][j]); break;
+						case 8: SDL_RenderCopy(renderer, textures[9], NULL, &case_damier[i][j]); break;
 						}
 					}
 					else {
-						SDL_RenderCopy(renderer, texture, NULL, &case_damier[i][j]);
+						SDL_SetRenderDrawColor(renderer, 185, 185, 185, 255);
+						SDL_RenderFillRect(renderer, &case_damier[i][j]);
 					}
 				}
 				else if (T[i][j].isFlaged == 1) {
-					SDL_RenderCopy(renderer, texture12, NULL, &case_damier[i][j]);
+					SDL_RenderCopy(renderer, textures[10], NULL, &case_damier[i][j]);
 				}
 				else if (T[i][j].isClicked == 0) {
-					SDL_SetRenderDrawColor(renderer, 110, 148, 240, 255);
-					SDL_RenderFillRect(renderer, &case_damier[i][j]);
+					SDL_RenderCopy(renderer, textures[11], NULL, &case_damier[i][j]);
 				}
 			}
 		}
 		//DAMIER-------------------
-		if (!image)
-		{
-			printf("Erreur de chargement de l'image : %s", SDL_GetError());
-			return -1;
-		}
 		if (GameOver == 1) {
 			SDL_SetRenderDrawColor(renderer, 200, 200, 200, 150);
 			SDL_RenderFillRect(renderer, &menu);
-			SDL_SetRenderDrawColor(renderer, 200, 200, 200, 200);
+			SDL_SetRenderDrawColor(renderer, 180, 180, 180, 200);
 			SDL_RenderFillRect(renderer, &playAgainRect);
 		}
 		SDL_RenderPresent(renderer);
 	}
 	if (close) {
-		for (int i = 0; i < (10 * difficulty); ++i) {
+		for (int i = 0; i < length; ++i) {
 			free(T[i]);
+			free(case_damier[i]);
 		}
+		for (i = 0; i < texture_length; i++) {
+			free(textures[i]);
+		}
+		free(textures);
 		free(T);
+		free(case_damier);
 		SDL_DestroyRenderer(renderer);
-		SDL_FreeSurface(image); //Équivalent du destroyTexture pour les surface, permet de libérer la mémoire quand on n'a plus besoin d'une surface
 		IMG_Quit();
 		SDL_DestroyWindow(window);
 		SDL_Quit();
