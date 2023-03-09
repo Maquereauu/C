@@ -266,14 +266,15 @@ void GameSDL(int* play , int* difficulty , int* InMenu) {
 		"7.png",
 		"8.png",
 		"flag.png",
-		"emptycase.png"
+		"emptycase.png",
+		"playAgain.png"
 	};
 
 	int texture_length = sizeof(path) / sizeof(path[0]);
 
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-	SDL_Texture*** textures = (SDL_Texture***)malloc(sizeof(SDL_Texture**) * texture_length);
+	SDL_Texture** textures = (SDL_Texture**)malloc(sizeof(SDL_Texture*) * texture_length);
 	for (int i = 0; i < texture_length; ++i)
 	{
 		SDL_Surface* image = IMG_Load(path[i]);
@@ -282,6 +283,11 @@ void GameSDL(int* play , int* difficulty , int* InMenu) {
 	SDL_Event event;
 	while (1) {
 		if (GameOver == 1) {
+			for (i = 0; i < length; i++) {
+				for (j = 0; j < length; j++) {
+					T[i][j].isClicked = 1;
+				}
+			}
 			if (SDL_PollEvent(&event)) {
 				if (event.type == SDL_QUIT) { close = 1; break; }
 				if (SDL_MOUSEBUTTONDOWN == event.type) {
@@ -389,8 +395,7 @@ void GameSDL(int* play , int* difficulty , int* InMenu) {
 		if (GameOver == 1) {
 			SDL_SetRenderDrawColor(renderer, 200, 200, 200, 150);
 			SDL_RenderFillRect(renderer, &menu);
-			SDL_SetRenderDrawColor(renderer, 180, 180, 180, 200);
-			SDL_RenderFillRect(renderer, &playAgainRect);
+			SDL_RenderCopy(renderer, textures[12], NULL, &playAgainRect);
 		}
 		SDL_RenderPresent(renderer);
 	}
