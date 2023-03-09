@@ -276,17 +276,11 @@ void GameSDL(int* play , int* difficulty , int* InMenu) {
 	SDL_Texture*** textures = (SDL_Texture***)malloc(sizeof(SDL_Texture**) * texture_length);
 	for (int i = 0; i < texture_length; ++i)
 	{
-		textures[i] = (SDL_Texture**)malloc(sizeof(SDL_Texture*));
-	}
-
-	for (int i = 0; i < texture_length; ++i)
-	{
 		SDL_Surface* image = IMG_Load(path[i]);
 		textures[i] = SDL_CreateTextureFromSurface(renderer, image);
 	}
 	SDL_Event event;
 	while (1) {
-		ShowGrid(T, *difficulty);
 		if (GameOver == 1) {
 			if (SDL_PollEvent(&event)) {
 				if (event.type == SDL_QUIT) { close = 1; break; }
@@ -404,9 +398,6 @@ void GameSDL(int* play , int* difficulty , int* InMenu) {
 		for (int i = 0; i < length; ++i) {
 			free(T[i]);
 			free(case_damier[i]);
-		}
-		for (i = 0; i < texture_length; i++) {
-			free(textures[i]);
 		}
 		free(textures);
 		free(T);
@@ -569,7 +560,7 @@ void Init(Case** T, int difficulty) {
 	for (k = 0; k < bombCount; k++){
 		int rand = getRandom(lengthAllCoords);
 		int index = coords[rand];
-		for (int j = index; j < lengthAllCoords - 1; ++j) 
+		for (int j = rand; j < lengthAllCoords - 1; ++j) 
 		{
 			coords[j] = coords[j + 1];
 		}
